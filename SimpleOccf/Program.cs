@@ -34,7 +34,7 @@ namespace SimpleOccf {
                 }
 
                 foreach (var stmt in JavaElements.Statement(tree)) {
-                    stmt.InsertCodeAfterSelf("randoop.multi.OCCF.stmt(" + iStatement + ");");
+                    stmt.InsertCodeBeforeSelf("randoop.multi.OCCF.stmt(" + iStatement + ");");
                     iStatement++;
                 }
 
