@@ -18,7 +18,7 @@ namespace SimpleOccf {
                 } else {
                     return Enumerable.Repeat(arg, 0);
                 }
-            }).Select(Path.GetFileName).Distinct();
+            }).Select(Path.GetFullPath).Distinct();
 
             foreach (var path in paths) {
                 var backupPath = path + BackupExtension;
