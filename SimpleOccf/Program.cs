@@ -38,6 +38,7 @@ namespace SimpleOccf {
                     iStatement++;
                 }
 
+                // Check whether generated code is parasable or not
                 gen.GenerateTreeFromCodeText(tree.Code, true);
 
                 File.WriteAllText(path, tree.Code);
