@@ -18,7 +18,7 @@ namespace SimpleOccf {
 
         public void ModifyStatements(CstNode root) {
             foreach (var stmt in FindStatementNodes(root)) {
-                stmt.InsertCodeBeforeSelf("randoop.multi.OCCF.stmt(" + StatementCount + ");");
+                stmt.InsertCodeBeforeSelf("soccf.Gateway.stmt(" + StatementCount + ");");
                 StatementCount++;
             }
         }
@@ -26,7 +26,7 @@ namespace SimpleOccf {
         public void ModifyBranches(CstNode root) {
             foreach (var branch in FindBranchNodes(root)) {
                 if (branch.TokenText != "true") {
-                    branch.InsertCodeBeforeSelf("randoop.multi.OCCF.branch(" + BranchCount + ", ");
+                    branch.InsertCodeBeforeSelf("soccf.Gateway.branch(" + BranchCount + ", ");
                     branch.InsertCodeAfterSelf(")");
                     BranchCount++;
                 }
