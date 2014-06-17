@@ -6,8 +6,15 @@ namespace SimpleOccf {
     public class JavaCodeManipulator {
         public int StatementCount { get; private set; }
         public int BranchCount { get; private set; }
+        public Dictionary<CstNode, int> StatementToId { get; private set; }
+        public Dictionary<CstNode, int> BranchToId { get; private set; }
 
-        public JavaCodeManipulator() {}
+        public JavaCodeManipulator() {
+            StatementCount = 0;
+            BranchCount = 0;
+            StatementToId = new Dictionary<CstNode,int>();
+            BranchToId = new Dictionary<CstNode,int>();
+        }
 
         public void SupplementBlock(CstNode root) {
             foreach (var node in FindLackingBlockNodes(root)) {
@@ -19,6 +26,7 @@ namespace SimpleOccf {
         public void ModifyStatements(CstNode root) {
             foreach (var stmt in FindStatementNodes(root)) {
                 stmt.InsertCodeBeforeSelf("soccf.Gateway.stmt(" + StatementCount + ");");
+                StatementToId.Add(stmt, StatementCount);
                 StatementCount++;
             }
         }
@@ -28,6 +36,7 @@ namespace SimpleOccf {
                 if (branch.TokenText != "true") {
                     branch.InsertCodeBeforeSelf("soccf.Gateway.branch(" + BranchCount + ", ");
                     branch.InsertCodeAfterSelf(")");
+                    BranchToId.Add(branch, BranchCount);
                     BranchCount++;
                 }
             }
