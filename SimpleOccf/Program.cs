@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Xml.Linq;
@@ -12,12 +13,12 @@ namespace SimpleOccf {
         private const string StatementIdAttributeName = "statement_id";
         private const string BranchIdAttributeName = "branch_id";
 
-        private CstGenerator Generator;
-        private JavaCodeManipulator Manipulator;
+        private readonly CstGenerator _generator;
+        private readonly JavaCodeManipulator _manipulator;
 
         public Program() {
-            Generator = CstGenerators.JavaUsingAntlr3;
-            Manipulator = new JavaCodeManipulator();
+            _generator = CstGenerators.JavaUsingAntlr3;
+            _manipulator = new JavaCodeManipulator();
         }
 
         public void Instrument(string path) {
@@ -26,12 +27,12 @@ namespace SimpleOccf {
                 File.Copy(path, backupPath);
             }
 
-            var tree = Generator.GenerateTreeFromCodePath(backupPath);
-            Manipulator.SupplementBlock(tree);
-            Manipulator.ModifyStatements(tree);
-            Manipulator.ModifyBranches(tree);
+            var tree = _generator.GenerateTreeFromCodePath(backupPath);
+            _manipulator.SupplementBlock(tree);
+            _manipulator.ModifyStatements(tree);
+            _manipulator.ModifyBranches(tree);
             // Check whether generated code is parasable or not
-            Generator.GenerateTreeFromCodeText(tree.Code, true);
+            _generator.GenerateTreeFromCodeText(tree.Code, true);
 
             File.WriteAllText(path, tree.Code);
             var metadataPath = path + MetadataExtension;
@@ -41,11 +42,11 @@ namespace SimpleOccf {
         private XElement CstNodeToXml(CstNode node) {
             var element = new XElement(node.Name);
             element.SetAttributeValue(Code2XmlConstants.IdAttributeName, node.RuleId);
-            if (Manipulator.StatementToId.ContainsKey(node)) {
-                element.SetAttributeValue(StatementIdAttributeName, Manipulator.StatementToId[node]);
+            if (_manipulator.StatementToId.ContainsKey(node)) {
+                element.SetAttributeValue(StatementIdAttributeName, _manipulator.StatementToId[node]);
             }
-            if (Manipulator.BranchToId.ContainsKey(node)) {
-                element.SetAttributeValue(BranchIdAttributeName, Manipulator.BranchToId[node]);
+            if (_manipulator.BranchToId.ContainsKey(node)) {
+                element.SetAttributeValue(BranchIdAttributeName, _manipulator.BranchToId[node]);
             }
             if (node.Token == null) {
                 foreach (var child in node.Children()) {
@@ -61,15 +62,12 @@ namespace SimpleOccf {
         }
 
         private static void Main(string[] args) {
-            var paths = args.SelectMany(arg => {
-                if (Directory.Exists(arg)) {
-                    return Directory.GetFiles(arg, "*.java", SearchOption.AllDirectories);
-                } else if (File.Exists(arg)) {
-                    return Enumerable.Repeat(arg, 1);
-                } else {
-                    return Enumerable.Repeat(arg, 0);
-                }
-            }).Select(Path.GetFullPath).Distinct();
+            var paths = ExtractPaths(args);
+            if (paths.Count == 0) {
+                Console.WriteLine("SimpleOccf.exe arg1 arg2 ...");
+                Console.WriteLine("  args: Java source code files or directories");
+                return;
+            }
 
             var program = new Program();
             foreach (var path in paths) {
@@ -77,8 +75,18 @@ namespace SimpleOccf {
                 Console.Write(".");
             }
             Console.WriteLine();
-            Console.WriteLine("Statement: " + program.Manipulator.StatementCount);
-            Console.WriteLine("Branch: " + program.Manipulator.BranchCount);
+            Console.WriteLine("Statement: " + program._manipulator.StatementCount);
+            Console.WriteLine("Branch: " + program._manipulator.BranchCount);
+        }
+
+        private static IList<string> ExtractPaths(IEnumerable<string> paths) {
+            return paths.SelectMany(arg => {
+                if (Directory.Exists(arg)) {
+                    return Directory.GetFiles(arg, "*.java", SearchOption.AllDirectories);
+                }
+                var repeatCount = File.Exists(arg) ? 1 : 0;
+                return Enumerable.Repeat(arg, repeatCount);
+            }).Select(Path.GetFullPath).Distinct().ToList();
         }
     }
 }
