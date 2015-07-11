@@ -16,9 +16,9 @@ namespace SimpleOccf {
         private readonly CstGenerator _generator;
         private readonly JavaCodeManipulator _manipulator;
 
-        public Program() {
+        public Program(Options opts) {
             _generator = CstGenerators.JavaUsingAntlr3;
-            _manipulator = new JavaCodeManipulator();
+            _manipulator = new JavaCodeManipulator(opts.Handler);
         }
 
         public void Instrument(string path) {
@@ -62,14 +62,21 @@ namespace SimpleOccf {
         }
 
         private static void Main(string[] args) {
-            var paths = ExtractPaths(args);
-            if (paths.Count == 0) {
-                Console.WriteLine("SimpleOccf.exe arg1 arg2 ...");
-                Console.WriteLine("  args: Java source code files or directories");
+            var opts = new Options();
+            bool isSuccess = CommandLine.Parser.Default.ParseArguments(args, opts);
+            if (!isSuccess) {
+                OutputHelp();
                 return;
             }
 
-            var program = new Program();
+            var paths = ExtractPaths(opts.Paths);
+            if (paths.Count == 0) {
+                OutputHelp();
+                Console.WriteLine("Error: No files found.");
+                return;
+            }
+
+            var program = new Program(opts);
             foreach (var path in paths) {
                 program.Instrument(path);
                 Console.Write(".");
@@ -87,6 +94,12 @@ namespace SimpleOccf {
                 var repeatCount = File.Exists(arg) ? 1 : 0;
                 return Enumerable.Repeat(arg, repeatCount);
             }).Select(Path.GetFullPath).OrderBy(x => x).Distinct().ToList();
+        }
+
+        private static void OutputHelp() {
+            Console.WriteLine("SimpleOccf.exe [--handler handler] arg1 arg2 ...");
+            Console.WriteLine("  args: Java source code files or directories");
+            Console.WriteLine("  handler: FQCN of coverage handler class");
         }
     }
 }

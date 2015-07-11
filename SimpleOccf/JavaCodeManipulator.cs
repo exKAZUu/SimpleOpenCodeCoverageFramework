@@ -4,12 +4,14 @@ using Code2Xml.Core.Generators;
 
 namespace SimpleOccf {
     public class JavaCodeManipulator {
+        public string CoverageHandler { get; private set; }
         public int StatementCount { get; private set; }
         public int BranchCount { get; private set; }
         public Dictionary<CstNode, int> StatementToId { get; private set; }
         public Dictionary<CstNode, int> BranchToId { get; private set; }
 
-        public JavaCodeManipulator() {
+        public JavaCodeManipulator(string coverageHandler) {
+            CoverageHandler = coverageHandler;
             StatementCount = 0;
             BranchCount = 0;
             StatementToId = new Dictionary<CstNode,int>();
@@ -25,7 +27,7 @@ namespace SimpleOccf {
 
         public void ModifyStatements(CstNode root) {
             foreach (var stmt in FindStatementNodes(root)) {
-                stmt.InsertCodeBeforeSelf("soccf.Gateway.stmt(" + StatementCount + ");");
+                stmt.InsertCodeBeforeSelf(CoverageHandler + ".stmt(" + StatementCount + ");");
                 StatementToId.Add(stmt, StatementCount);
                 StatementCount++;
             }
@@ -34,7 +36,7 @@ namespace SimpleOccf {
         public void ModifyBranches(CstNode root) {
             foreach (var branch in FindBranchNodes(root)) {
                 if (branch.TokenText != "true") {
-                    branch.InsertCodeBeforeSelf("soccf.Gateway.branch(" + BranchCount + ", ");
+                    branch.InsertCodeBeforeSelf(CoverageHandler + ".branch(" + BranchCount + ", ");
                     branch.InsertCodeAfterSelf(")");
                     BranchToId.Add(branch, BranchCount);
                     BranchCount++;
