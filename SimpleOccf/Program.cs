@@ -86,7 +86,7 @@ namespace SimpleOccf {
                 }
                 var repeatCount = File.Exists(arg) ? 1 : 0;
                 return Enumerable.Repeat(arg, repeatCount);
-            }).Select(Path.GetFullPath).Distinct().ToList();
+            }).Select(Path.GetFullPath).OrderBy(x => x).Distinct().ToList();
         }
     }
 }
