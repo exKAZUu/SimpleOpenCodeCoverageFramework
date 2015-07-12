@@ -60,11 +60,11 @@ namespace SimpleOccf {
         private IEnumerable<CstNode> FindStatementNodes(CstNode root) {
             return root.Descendants("statement")
                     .Where(e => {
-                        // ブロック自身は意味を持たないステートメントで、中身だけが必要なので除外
+                        // Exclude blocks, as only their contents should be instrumented.
                         if (e.FirstChild.Name == "block") {
                             return false;
                         }
-                        // ラベルはループ文に付くため，ラベルの中身は除外
+                        // Exclude labels, as they are attached to loop statements.
                         var second = e.Parent.Children().ElementAtOrDefault(1);
                         if (second != null && second.TokenText == ":"
                             && e.Parent.Name == "statement") {
