@@ -4,8 +4,9 @@ SimpleOpenCodeCoverageFramework
 # Usage
 1. Modify Java source code files for measuring coverage.
   ```
-  SimpleOccf.exe arg1 arg2 ...
+  SimpleOccf.exe [--handler handler] arg1 arg2 ...
     args: Java source code files or directories
+    handler: FQCN of coverage handler class
   ```
 
 2. Compile modified source code files linking [the runtime jar file](https://github.com/kohyatoh/soccf-runtime). You can use Maven dependency as follows.
